@@ -4,13 +4,14 @@ import {readFile} from 'node:fs/promises';
 import {spawn} from 'node:child_process';
 import assert from 'node:assert/strict';
 import {seed} from '../scripts/seed.js';
+import {schemaForDatabase} from '../scripts/setup-schema.js';
 const credentials=JSON.parse(await readFile(new URL('../data/local-admin.json',import.meta.url),'utf8'));
 const db=await mysql.createConnection({...credentials,multipleStatements:true});
 const name=`hospital_rip_test_${Date.now()}`,port=3091,origin=`http://localhost:${port}`;let child,checks=0;
 const check=(condition,label)=>{assert.ok(condition,label);checks++;console.log(`OK ${checks}: ${label}`);};
 const call=async(path,body,cookie='')=>{const res=await fetch(origin+'/api/'+path,{method:body?'POST':'GET',headers:{Origin:origin,...(body?{'Content-Type':'application/json'}:{}),Cookie:cookie},body:body?JSON.stringify(body):undefined});return {status:res.status,body:await res.json(),cookie:res.headers.get('set-cookie')?.split(';')[0]};};
 try{
- await db.query((await readFile(new URL('../database/schema.sql',import.meta.url),'utf8')).replaceAll('hospital_rip',name));await seed(db);
+ await db.query(schemaForDatabase(await readFile(new URL('../database/schema.sql',import.meta.url),'utf8'),name));await seed(db);
  child=spawn(process.execPath,['server/index.js'],{env:{...process.env,DB_NAME:name,DB_USER:credentials.user,DB_PASSWORD:credentials.password,DB_PORT:String(credentials.port),PORT:String(port),APP_ORIGIN:origin},stdio:'ignore',windowsHide:true});
  for(let i=0;i<40;i++){try{await fetch(origin);break;}catch{await new Promise(r=>setTimeout(r,250));}}
  check((await call('data')).status===401,'API protegida sin sesión');
