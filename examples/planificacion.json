@@ -1,0 +1,6 @@
+{
+  "nota": "Ejemplo de estructura para la API. Requiere una sesión de médico jefe; no es un importador automático.",
+  "name": "Guardias de octubre",
+  "start_date": "2026-10-01",
+  "end_date": "2026-10-07"
+}

@@ -1,0 +1,7 @@
+{
+  "name": "hospital-rip", "version": "1.0.0", "private": true, "type": "module",
+  "description": "Planificación y autorización de guardias del Hospital RIP",
+  "engines": {"node": ">=22"},
+  "scripts": {"start": "node --env-file-if-exists=.env server/index.js", "setup": "node --env-file-if-exists=.env scripts/setup.js", "test": "node --test tests/*.test.js", "test:integration": "node --env-file=.env tests/integration.js"},
+  "dependencies": {"mysql2": "^3.14.0"}
+}
