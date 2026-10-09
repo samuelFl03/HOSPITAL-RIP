@@ -1,5 +1,6 @@
 import {Problem,date,interval,id,text,role} from './security.js';
 import {rows} from './db.js';
+import {availablePositions,validatePosition} from './positions.js';
 
 export function cents(value) {
  if(!['string','number'].includes(typeof value)||!/^\d{1,9}(\.\d{1,2})?$/.test(String(value)))throw new Problem('La tarifa debe ser positiva y tener máximo dos decimales.');
@@ -9,7 +10,8 @@ export function earnings(minutes,rate){return Number((BigInt(minutes)*BigInt(rat
 export async function payrollMutation(db,user,path,b){
  role(user,'admin');let entityId;
  if(path==='workers'){
-  const values=[text(b.name,'Nombre',3,100),text(b.identification,'Identificación',3,30),text(b.position,'Cargo',2,100),cents(b.hourly_rate),b.active===false?0:1];
+  const positions=availablePositions(await rows(db,'SELECT DISTINCT position FROM workers'));
+  const values=[text(b.name,'Nombre',3,100),text(b.identification,'Identificación',3,30),validatePosition(b.position,positions),cents(b.hourly_rate),b.active===false?0:1];
   if(b.id){entityId=id(b.id);if(!(await rows(db,'SELECT id FROM workers WHERE id=?',[entityId])).length)throw new Problem('Trabajador no encontrado.',404);await rows(db,'UPDATE workers SET name=?,identification=?,position=?,rate_cents=?,active=? WHERE id=?',[...values,entityId]);}
   else entityId=(await rows(db,'INSERT INTO workers(name,identification,position,rate_cents,active) VALUES(?,?,?,?,?)',values)).insertId;
  }else if(path==='work-hours'){

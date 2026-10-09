@@ -71,6 +71,8 @@ try{
  check((await call('workers',worker,s)).status===403,'Supervisor no administra nómina');
  check(!(await call('data',null,c)).body.workers,'Nómina oculta para médico jefe');
  const workerId=(await call('workers',worker,a)).body.id;check(Boolean(workerId),'Registra trabajador por horas');
+ check((await call('data',null,a)).body.positions.includes('Médico general'),'API publica los cargos disponibles al administrador');
+ check((await call('workers',{...worker,identification:'BAD-CARGO',position:'Cargo inventado'},a)).status===400,'Servidor rechaza cargos fuera del catálogo');
  check((await call('workers',{...worker,hourly_rate:-1},a)).status===400,'Rechaza tarifa negativa');
  const hours={worker_id:workerId,starts_at:'2020-01-01T22:00',ends_at:'2020-01-02T06:00'};
  const hoursId=(await call('work-hours',hours,a)).body.id;check(Boolean(hoursId),'Registra ocho horas cruzando medianoche');

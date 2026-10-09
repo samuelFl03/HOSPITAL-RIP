@@ -1,5 +1,6 @@
 import {rows,transaction,audit} from './db.js';
 import {payrollMutation} from './payroll.js';
+import {availablePositions} from './positions.js';
 import {Problem,text,id,date,interval,role,email,password,hashPassword} from './security.js';
 const editable = p => {if(!['draft','rejected'].includes(p.status)) throw new Problem('Solo puedes editar borradores o planificaciones rechazadas.',409);};
 async function plan(db,planId) {const p=(await rows(db,'SELECT * FROM plans WHERE id=?',[id(planId)]))[0]; if(!p)throw new Problem('Planificación no encontrada.',404);return p;}
@@ -25,6 +26,7 @@ export async function snapshot(db,user){
  if(user.role==='admin'){result.users=await rows(db,'SELECT id,name,email,role,active FROM users ORDER BY name');result.audit=await rows(db,'SELECT a.*,u.name user_name FROM audit a LEFT JOIN users u ON u.id=a.user_id ORDER BY a.id DESC LIMIT 250');}
  if(user.role==='admin'){
   result.workers=await rows(db,'SELECT * FROM workers ORDER BY name');
+  result.positions=availablePositions(result.workers);
   result.workHours=await rows(db,'SELECT h.*,w.name worker_name FROM work_hours h JOIN workers w ON w.id=h.worker_id ORDER BY h.starts_at DESC');
   result.payrolls=await rows(db,'SELECT * FROM payrolls ORDER BY id DESC');
  }
